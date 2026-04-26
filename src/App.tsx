@@ -1,13 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Upload, Settings2, SlidersHorizontal, RefreshCw, Play, Pause } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Upload, Settings2, SlidersHorizontal, RefreshCw, Play, Pause, Palette } from "lucide-react";
 import { ALL_FILTERS } from "./preset";
 import type { AudioFilterEffect } from "./types";
 import { WebAudioPipeline } from "./WebAudioPipeline";
+import { parseCubeFile, type LutData } from "./LutParser";
+import { VideoFilterCanvas } from "./VideoFilterCanvas";
 
 export default function App() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [pipelineState, setPipelineState] = useState<string>("idle");
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [currentLut, setCurrentLut] = useState<LutData | null>(null);
+  const [lutName, setLutName] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pipelineRef = useRef<WebAudioPipeline | null>(null);
 
@@ -97,6 +101,21 @@ export default function App() {
 
   const handleApply = () => {
     applySettings(customFilter, true);
+  };
+
+  const handleLutUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const lut = parseCubeFile(text);
+      setCurrentLut(lut);
+      setLutName(file.name);
+    } catch (err) {
+      console.error("Failed to parse LUT", err);
+      alert("Invalid .cube file format");
+    }
   };
 
   const handlePresetSelect = (preset: AudioFilterEffect | null) => {
@@ -212,10 +231,15 @@ export default function App() {
                 <video
                   ref={videoRef}
                   src={videoSrc}
-                  className="w-full h-full object-contain cursor-pointer"
+                  className="hidden"
                   muted
                   loop
                   playsInline
+                />
+                <VideoFilterCanvas 
+                  videoRef={videoRef} 
+                  lutData={currentLut} 
+                  className="w-full h-full object-contain cursor-pointer"
                   onClick={togglePlayPause}
                 />
                 
@@ -229,6 +253,37 @@ export default function App() {
                     <Upload className="w-4 h-4" />
                     New Video
                   </button>
+                </div>
+              </div>
+
+              {/* Video LUT Section */}
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-zinc-400" />
+                    <h3 className="text-sm font-semibold text-zinc-300 tracking-wide uppercase">Video LUT</h3>
+                  </div>
+                  {lutName && (
+                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20 font-medium">
+                      {lutName}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  <label className="flex-1 px-5 py-3 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    {currentLut ? "Change LUT (.cube)" : "Upload LUT (.cube)"}
+                    <input type="file" accept=".cube" className="hidden" onChange={handleLutUpload} />
+                  </label>
+                  {currentLut && (
+                    <button 
+                      onClick={() => { setCurrentLut(null); setLutName(null); }}
+                      className="px-5 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/20 transition-all"
+                    >
+                      Reset
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -374,6 +429,8 @@ export default function App() {
                     format={(v: number) => `${v}ms`}
                   />
                 </div>
+
+                <div className="h-px w-full bg-zinc-800/50" />
 
               </div>
             </div>

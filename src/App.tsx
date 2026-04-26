@@ -118,7 +118,7 @@ export default function App() {
     }
   };
 
-  const handlePresetSelect = (preset: AudioFilterEffect | null) => {
+  const handlePresetSelect = async (preset: AudioFilterEffect | null) => {
     setActivePresetId(preset?.id || "clean");
     
     if (preset) {
@@ -136,6 +136,20 @@ export default function App() {
       };
       setCustomFilter(newFilter);
       applySettings(newFilter, true);
+
+      if (preset.lut) {
+        try {
+          const res = await fetch(preset.lut);
+          const text = await res.text();
+          setCurrentLut(parseCubeFile(text));
+          setLutName(`${preset.id}.cube`);
+        } catch (e) {
+          console.error("Error loading preset LUT", e);
+        }
+      } else {
+        setCurrentLut(null);
+        setLutName(null);
+      }
     } else {
       const cleanFilter = {
         id: "custom",
@@ -151,6 +165,8 @@ export default function App() {
       };
       setCustomFilter(cleanFilter);
       applySettings({ id: "clean", name: "Clean", emoji: "🧼", description: "" }, true);
+      setCurrentLut(null);
+      setLutName(null);
     }
   };
 

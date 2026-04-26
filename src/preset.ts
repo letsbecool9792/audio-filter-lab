@@ -8,6 +8,7 @@ export const HELIUM_FILTER: AudioFilterEffect = {
   pitch: 12,
   rate: 1.35,
   amplify: 2,
+  lut: "/src/assets/filters/spongebob.cube",
 };
 
 export const ROBOT_FILTER: AudioFilterEffect = {
@@ -19,6 +20,7 @@ export const ROBOT_FILTER: AudioFilterEffect = {
   amplify: 3,
   echo: [25, 30, 300],
   distortion: 25,
+  lut: "/src/assets/filters/npc.cube",
 };
 
 export const DRAMATIC_FILTER: AudioFilterEffect = {
@@ -30,6 +32,7 @@ export const DRAMATIC_FILTER: AudioFilterEffect = {
   rate: 0.8,
   amplify: 4,
   echo: [60, 25, 600],
+  lut: "/src/assets/filters/god.cube",
 };
 
 export const ALIEN_FILTER: AudioFilterEffect = {
@@ -41,6 +44,7 @@ export const ALIEN_FILTER: AudioFilterEffect = {
   rate: 1.15,
   amplify: 8,
   echo: [30, 60, 700],
+  lut: "/src/assets/filters/unhinged.cube",
 };
 
 export const MEGAPHONE_FILTER: AudioFilterEffect = {
@@ -51,6 +55,7 @@ export const MEGAPHONE_FILTER: AudioFilterEffect = {
   amplify: 3,
   pitch: -4,
   distortion: 12,
+  lut: "/src/assets/filters/aura.cube",
 };
 
 export const ALL_FILTERS: AudioFilterEffect[] = [

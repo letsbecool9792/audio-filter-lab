@@ -28,6 +28,7 @@ export interface AudioFilterEffect {
   reverb?: ReverbConfig;
   distortion?: number;
   rate?: number; // playback rate: 1 = normal, 1.25 = 25% faster, 0.75 = slower
+  lut?: string; // path to .cube file
 }
 
 export type AudioPipelineState =

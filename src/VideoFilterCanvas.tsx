@@ -57,7 +57,7 @@ const FRAGMENT_SHADER = `
   }
 `;
 
-export function VideoFilterCanvas({ videoRef, lutData, className }: VideoFilterCanvasProps) {
+export function VideoFilterCanvas({ videoRef, lutData, className, onClick }: VideoFilterCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
@@ -138,7 +138,7 @@ export function VideoFilterCanvas({ videoRef, lutData, className }: VideoFilterC
     return () => cancelAnimationFrame(raf);
   }, [videoRef, lutData]);
 
-  return <canvas ref={canvasRef} className={className}  />;
+  return <canvas ref={canvasRef} className={className} onClick={onClick} />;
 }
 
 function createShader(gl: WebGLRenderingContext, type: number, source: string) {

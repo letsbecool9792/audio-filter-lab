@@ -12,6 +12,8 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [currentLut, setCurrentLut] = useState<LutData | null>(null);
   const [lutName, setLutName] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pipelineRef = useRef<WebAudioPipeline | null>(null);
 
@@ -33,8 +35,20 @@ export default function App() {
   useEffect(() => {
     pipelineRef.current = new WebAudioPipeline({ loop: true, volume: 1 });
     pipelineRef.current.onStateChange = setPipelineState;
+
+    let raf: number;
+    const updateTime = () => {
+      if (pipelineRef.current && pipelineRef.current.state === "playing") {
+        setCurrentTime(pipelineRef.current.currentTime);
+        setDuration(pipelineRef.current.duration);
+      }
+      raf = requestAnimationFrame(updateTime);
+    };
+    updateTime();
+
     return () => {
       pipelineRef.current?.dispose();
+      cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -97,6 +111,22 @@ export default function App() {
     }
     setVideoSrc(null);
     setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  };
+
+  const handleSeek = (time: number) => {
+    if (!pipelineRef.current || !videoRef.current) return;
+    
+    // Seek both
+    pipelineRef.current.play(customFilter, time);
+    videoRef.current.currentTime = time;
+    
+    if (!isPlaying) {
+      pipelineRef.current.pause();
+      videoRef.current.pause();
+    }
+    setCurrentTime(time);
   };
 
   const handleApply = () => {
@@ -269,6 +299,25 @@ export default function App() {
                     <Upload className="w-4 h-4" />
                     New Video
                   </button>
+                </div>
+              </div>
+
+              {/* Seek Bar */}
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-4 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-[10px] font-mono text-zinc-500 w-10">{formatTime(currentTime)}</span>
+                  <div className="flex-1 relative h-6 flex items-center">
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 1}
+                      step={0.01}
+                      value={currentTime}
+                      onChange={(e) => handleSeek(parseFloat(e.target.value))}
+                      className="w-full appearance-none bg-transparent cursor-pointer [&::-webkit-slider-runnable-track]:bg-zinc-800 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:-mt-[3px] [&::-webkit-slider-thumb]:bg-indigo-400 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg focus:outline-none"
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-500 w-10 text-right">{formatTime(duration)}</span>
                 </div>
               </div>
 
@@ -455,6 +504,12 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 interface SliderRowProps {
